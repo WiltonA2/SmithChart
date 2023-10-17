@@ -1,0 +1,124 @@
+import plotly.graph_objects as go
+import numpy as np
+import math
+import cmath
+
+#Achando yc pela inversa
+def abdutancia(real, imaginaria):
+    if real == 0 and imaginaria == 0:
+        print("A impedância deve ser diferente de zero!!!")
+        return None
+    else:
+        real_inversa = real / (real**2 + imaginaria**2)
+        imaginaria_inversa = -imaginaria / (real**2 + imaginaria**2)
+        return real_inversa, imaginaria_inversa
+
+#fornecendo dados
+print("Entre com os valores de impedância:")
+
+real = float(input("Digite o valor real: "))
+imaginaria = float(input("Digite o valor imaginário: "))
+
+if real > 50 or imaginaria > 50:
+    Z_0 = float(input("Digite a impedância caracteristica: "))
+else:
+    Z_0 = 1
+
+inverso = abdutancia(real, imaginaria)
+
+#impedância complexa para aplicar na formula
+Z_C = complex(real, imaginaria)
+
+# Formula do coeficiente de reflexão (Γ)
+gama = (Z_C - Z_0) / (Z_C + Z_0)
+
+# |Γ|
+mod_gama = abs(gama)
+
+# Cálculo da fase e conversão(radianos->graus)
+phase_rad = cmath.phase(gama)
+phase_deg = math.degrees(phase_rad)
+
+# formula da onda estacionaria
+S = (1 + mod_gama) / (1 - mod_gama)
+
+fig = go.Figure()
+
+# Def legenda hover
+hover_template = "r: %{real:.2f}; jx: %{imag:.2f}"
+hover_template1 = "%{real:.2f}"
+
+#ponto de Impedância
+fig.add_trace(go.Scattersmith(
+    real=[real, inverso[0]],
+    imag=[imaginaria, inverso[1]],
+    mode='markers',
+    marker=dict(color='blue', size=5),
+    hovertemplate=hover_template,
+    name="z"
+
+))
+#ponto de Abdutância
+fig.add_trace(go.Scattersmith(
+    real=[inverso[0]],
+    imag=[inverso[1]],
+    mode='markers',
+    marker=dict(color='red', size=5),
+    hovertemplate=hover_template,
+    name="y"
+
+))
+#Ponto centro
+fig.add_trace(go.Scattersmith(
+    real=[1],
+    imag=[0],
+    mode='markers',
+    marker=dict(color='black', size=3),
+    hoverinfo="none",
+    name="o"
+
+))
+#Ponto S
+fig.add_trace(go.Scattersmith(
+    real=[S],
+    imag=[0],
+    mode='markers',
+    marker=dict(color='green', size=5),
+    hovertemplate=hover_template1,
+    name="s"
+
+))
+# Reta
+fig.add_trace(go.Scattersmith(
+    real=[real, inverso[0]],
+    imag=[imaginaria, inverso[1]],
+    mode='lines',
+    line=dict(color='green', width=0.5),
+    name="Reta secante"
+))
+
+if imaginaria >= 0:
+    sinal = "+"
+else:
+    sinal = "-"
+
+print(f"\n\nImpedância: {real:.2f} {sinal} j {abs(imaginaria):.2f}")
+
+if inverso[1] >= 0:
+    sinal = "+"
+else:
+    sinal = "-"
+
+print(f"Admitância: {inverso[0]:.2f} {sinal} j {abs(inverso[1]):.2f}")
+
+print(f"\nCoeficiente de reflexão: Γ=~ {mod_gama:.3f} < {phase_deg:.2f}°")
+
+print(f"\nA relação de onda estacionária: S =~ {S:.3f}")
+
+
+#Legenda da figura
+fig.update_layout(
+    title="Carta de Smith"
+)
+fig.show()
+
